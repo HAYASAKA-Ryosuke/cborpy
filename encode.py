@@ -1,6 +1,7 @@
 import io
 import struct
 import convert_byte
+import math
 
 
 def encode(value):
@@ -18,19 +19,23 @@ class Encoder:
         return self.buff.getvalue()
 
     def encode(self, value):
-        if isinstance(value, int):
+        if isinstance(value, bool):
+            self.encode_bool(value)
+        elif value is None:
+            self.encode_none()
+        elif isinstance(value, int):
             self.encode_int(value)
-        if isinstance(value, float):
+        elif isinstance(value, float):
             self.encode_float(value)
-        if isinstance(value, str):
+        elif isinstance(value, str):
             self.encode_str(value)
-        if isinstance(value, list):
+        elif isinstance(value, list):
             self.encode_list(value)
-        if isinstance(value, dict):
+        elif isinstance(value, dict):
             self.encode_dict(value)
 
     def encode_int(self, value: int):
-        if value > 0:
+        if value >= 0:
             major = 0
             self.buff.write(convert_byte.encode_byte(major, value))
         else:
@@ -49,7 +54,7 @@ class Encoder:
         # 25,26、および27の5ビット値は、16ビット、32ビット、および64ビットに割り振られている。python3はfloat64なので27
         fivebit_value = 27
         # >: big endian, B: unsigned char(byte), d: double
-        self.buff.write(struct.pack('>Bd', (major << 5 | fivebit_value), value))
+        self.buff.write(struct.pack('>Bd', (major << 5) | fivebit_value, value))
 
     def encode_str(self, value: str):
         major = 3
@@ -63,3 +68,11 @@ class Encoder:
             self.encode(key)
             self.encode(value)
 
+    def encode_bool(self, value: bool):
+        major = 7
+        "trueは21、falseは20に割り当てられている"
+        self.buff.write(convert_byte.encode_byte(major, 21) if value else convert_byte.encode_byte(major, 20))
+
+    def encode_none(self):
+        major = 7
+        self.buff.write(convert_byte.encode_byte(major, 22))
