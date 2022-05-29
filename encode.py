@@ -54,7 +54,7 @@ class Encoder:
         # 25,26、および27の5ビット値は、16ビット、32ビット、および64ビットに割り振られている。python3はfloat64なので27
         fivebit_value = 27
         # >: big endian, B: unsigned char(byte), d: double
-        self.buff.write(struct.pack('>Bd', (major << 5) | fivebit_value, value))
+        self.buff.write(struct.pack(">Bd", (major << 5) | fivebit_value, value))
 
     def encode_str(self, value: str):
         major = 3
@@ -71,7 +71,11 @@ class Encoder:
     def encode_bool(self, value: bool):
         major = 7
         "trueは21、falseは20に割り当てられている"
-        self.buff.write(convert_byte.encode_byte(major, 21) if value else convert_byte.encode_byte(major, 20))
+        self.buff.write(
+            convert_byte.encode_byte(major, 21)
+            if value
+            else convert_byte.encode_byte(major, 20)
+        )
 
     def encode_none(self):
         major = 7
