@@ -1,8 +1,3 @@
-import io
-import struct
-import convert_byte
-import math
-
 
 def decode(value: str):
     decoder = Decoder()
