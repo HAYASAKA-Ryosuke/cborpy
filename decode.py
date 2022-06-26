@@ -45,7 +45,6 @@ class Decoder:
 
     def decode(self, value):
         major = self.get_major(value)
-        print(major)
         if major == 0:
             return self.decode_int(value)
         elif major == 1:
@@ -145,7 +144,6 @@ class Decoder:
         list_bytes = values
         self.index += 1
         for i in range(length):
-            print(index)
             key =  self.decode(list_bytes[pad + self.index:])
             value = self.decode(list_bytes[pad + self.index:])
             result[key] = value
