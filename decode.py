@@ -1,11 +1,10 @@
-
 def decode(value: str):
     decoder = Decoder()
     result = decoder.decode(bytes.fromhex(value))
     return result
 
-class Decoder:
 
+class Decoder:
     def __init__(self):
         self.index = 0
 
@@ -53,10 +52,10 @@ class Decoder:
         elif major == 5:
             return self.decode_dict(value)
 
-    def decode_int(self, value: bytes, is_negative: bool=False):
+    def decode_int(self, value: bytes, is_negative: bool = False):
         pad = self._pad(value)
         if pad > 0:
-            result = int.from_bytes(value[1:pad+1], 'big')
+            result = int.from_bytes(value[1 : pad + 1], "big")
             self.index += pad + 1
         else:
             result = value[0] & 0x1F
@@ -66,29 +65,29 @@ class Decoder:
             return -(result + 1)
 
         return result
-    
+
     def decode_byte(self, value: bytes):
         length = self._length(value)
         self.index += length + 1
-        return  value[1:length + 1]
+        return value[1 : length + 1]
 
     def decode_str(self, value: bytes):
         length = self._length(value)
         if value[0] & 0x1F < 24:
             self.index += length + 1
-            return value[1:length+1].decode()
+            return value[1 : length + 1].decode()
         if value[0] & 0x1F == 24:
             self.index += length + 2
-            return value[2:length+2].decode()
+            return value[2 : length + 2].decode()
         if value[0] & 0x1F == 25:
             self.index += length + 3
-            return value[3:length+3].decode()
+            return value[3 : length + 3].decode()
         if value[0] & 0x1F == 26:
             self.index += length + 4
-            return value[4:length+4].decode()
+            return value[4 : length + 4].decode()
         if value[0] & 0x1F == 27:
             self.index += length + 5
-            return value[5:length+5].decode()
+            return value[5 : length + 5].decode()
 
     def decode_list(self, values: bytes):
         length = 0
@@ -111,7 +110,7 @@ class Decoder:
         result = []
         self.index += 1
         for i in range(length):
-            result.append(self.decode(values[pad + self.index:]))
+            result.append(self.decode(values[pad + self.index :]))
         self.index += length
         return result
 
@@ -135,12 +134,12 @@ class Decoder:
             length = values[0:4] & 0x1F
         result = {}
         index = 0
-        key = ''
+        key = ""
         list_bytes = values
         self.index += 1
         for i in range(length):
-            key =  self.decode(list_bytes[pad + self.index:])
-            value = self.decode(list_bytes[pad + self.index:])
+            key = self.decode(list_bytes[pad + self.index :])
+            value = self.decode(list_bytes[pad + self.index :])
             result[key] = value
         self.index += length
         return result
