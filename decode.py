@@ -115,9 +115,10 @@ class Decoder:
             pad = 4
             length = values[0:4] & 0x1F
         result = []
-        self.index += length
+        self.index += 1
         for i in range(length):
-            result.append(self.decode(int.to_bytes(values[pad + 1 + i], 1, 'big')))
+            result.append(self.decode(values[pad + self.index:]))
+        self.index += length
         return result
 
     def decode_dict(self, values: bytes):
