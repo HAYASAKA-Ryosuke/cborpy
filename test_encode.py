@@ -45,6 +45,10 @@ class TestEncode(unittest.TestCase):
         self.assertEqual(encode([]).hex(), "80")
         self.assertEqual(encode([1, 2, 3]).hex(), "83010203")
         self.assertEqual(encode([1, [2, 3], [4, 5]]).hex(), "8301820203820405")
+        self.assertEqual(
+            encode({"a": 1, "b": [1, 2], "c": 1.1}).hex(),
+            "a361610161628201026163fb3ff199999999999a",
+        )
 
 
 if __name__ == "__main__":
