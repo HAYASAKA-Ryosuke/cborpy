@@ -1,3 +1,6 @@
+import struct
+
+
 def decode(value: str):
     decoder = Decoder()
     result = decoder.decode(bytes.fromhex(value))
@@ -51,6 +54,8 @@ class Decoder:
             return self.decode_list(value)
         elif major == 5:
             return self.decode_dict(value)
+        elif major == 7:
+            return self.decode_float(value)
 
     def decode_int(self, value: bytes, is_negative: bool = False):
         pad = self._pad(value)
@@ -143,3 +148,6 @@ class Decoder:
             result[key] = value
         self.index += length
         return result
+
+    def decode_float(self, values: bytes):
+        return struct.unpack(">d", values[1:])[0]
