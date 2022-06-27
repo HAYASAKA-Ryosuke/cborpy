@@ -8,39 +8,39 @@ def decode(value: str):
 
 
 class Decoder:
-    def __init__(self):
+    def __init__(self) -> None:
         self.index = 0
 
-    def get_major(self, value: bytes):
+    def get_major(self, value: bytes) -> int:
         return value[0] >> 5
 
-    def _length(self, values: bytes):
+    def _length(self, values: bytes) -> int:
         if values[0] & 0x1F < 24:
-            length = values[0] & 0x1F
+            return int(values[0]) & 0x1F
         if values[0] & 0x1F == 24:
-            length = values[0:1] & 0x1F
+            return int(values[0:1]) & 0x1F
         if values[0] & 0x1F == 25:
-            length = values[0:2] & 0x1F
+            return int(values[0:2]) & 0x1F
         if values[0] & 0x1F == 26:
-            length = values[0:3] & 0x1F
+            return int(values[0:3]) & 0x1F
         if values[0] & 0x1F == 27:
-            length = values[0:4] & 0x1F
-        return length
+            return int(values[0:4]) & 0x1F
+        raise ValueError(f"Invalid value {values!r}")
 
-    def _pad(self, values: bytes):
+    def _pad(self, values: bytes) -> int:
         if values[0] & 0x1F < 24:
-            pad = 0
+            return 0
         if values[0] & 0x1F == 24:
-            pad = 1
+            return 1
         if values[0] & 0x1F == 25:
-            pad = 2
+            return 2
         if values[0] & 0x1F == 26:
-            pad = 4
+            return 4
         if values[0] & 0x1F == 27:
-            pad = 8
-        return pad
+            return 8
+        raise Exception(f"Invalid value: {values!r}")
 
-    def decode(self, value):
+    def decode(self, value) -> int | bytes | str | list | dict | float:
         major = self.get_major(value)
         if major == 0:
             return self.decode_int(value)
@@ -56,8 +56,9 @@ class Decoder:
             return self.decode_dict(value)
         elif major == 7:
             return self.decode_float(value)
+        raise Exception(f"Invalid value: {value}")
 
-    def decode_int(self, value: bytes, is_negative: bool = False):
+    def decode_int(self, value: bytes, is_negative: bool = False) -> int:
         pad = self._pad(value)
         if pad > 0:
             result = int.from_bytes(value[1 : pad + 1], "big")
@@ -71,12 +72,12 @@ class Decoder:
 
         return result
 
-    def decode_byte(self, value: bytes):
+    def decode_byte(self, value: bytes) -> bytes:
         length = self._length(value)
         self.index += length + 1
         return value[1 : length + 1]
 
-    def decode_str(self, value: bytes):
+    def decode_str(self, value: bytes) -> str:
         length = self._length(value)
         if value[0] & 0x1F < 24:
             self.index += length + 1
@@ -94,24 +95,26 @@ class Decoder:
             self.index += length + 5
             return value[5 : length + 5].decode()
 
-    def decode_list(self, values: bytes):
+        raise Exception(f"Invalid value: {value!r}")
+
+    def decode_list(self, values: bytes) -> list:
         length = 0
         pad = 0
         if values[0] & 0x1F < 24:
             pad = 0
-            length = values[0] & 0x1F
+            length = int(values[0]) & 0x1F
         if values[0] & 0x1F == 24:
             pad = 1
-            length = values[0:1] & 0x1F
+            length = int(values[0:1]) & 0x1F
         if values[0] & 0x1F == 25:
             pad = 2
-            length = values[0:2] & 0x1F
+            length = int(values[0:2]) & 0x1F
         if values[0] & 0x1F == 26:
             pad = 3
-            length = values[0:3] & 0x1F
+            length = int(values[0:3]) & 0x1F
         if values[0] & 0x1F == 27:
             pad = 4
-            length = values[0:4] & 0x1F
+            length = int(values[0:4]) & 0x1F
         result = []
         self.index += 1
         for i in range(length):
@@ -119,35 +122,32 @@ class Decoder:
         self.index += length
         return result
 
-    def decode_dict(self, values: bytes):
+    def decode_dict(self, values: bytes) -> dict:
         length = 0
         pad = 0
         if values[0] & 0x1F < 24:
             pad = 0
-            length = values[0] & 0x1F
+            length = int(values[0]) & 0x1F
         if values[0] & 0x1F == 24:
             pad = 1
-            length = values[0:1] & 0x1F
+            length = int(values[0:1]) & 0x1F
         if values[0] & 0x1F == 25:
             pad = 2
-            length = values[0:2] & 0x1F
+            length = int(values[0:2]) & 0x1F
         if values[0] & 0x1F == 26:
             pad = 3
-            length = values[0:3] & 0x1F
+            length = int(values[0:3]) & 0x1F
         if values[0] & 0x1F == 27:
             pad = 4
-            length = values[0:4] & 0x1F
+            length = int(values[0:4]) & 0x1F
         result = {}
-        index = 0
-        key = ""
-        list_bytes = values
         self.index += 1
         for i in range(length):
-            key = self.decode(list_bytes[pad + self.index :])
-            value = self.decode(list_bytes[pad + self.index :])
+            key = self.decode(values[pad + self.index :])
+            value = self.decode(values[pad + self.index :])
             result[key] = value
         self.index += length
         return result
 
-    def decode_float(self, values: bytes):
+    def decode_float(self, values: bytes) -> float:
         return struct.unpack(">d", values[1:])[0]
