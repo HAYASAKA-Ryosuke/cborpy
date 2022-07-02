@@ -55,7 +55,7 @@ class Decoder:
         elif major == 5:
             return self.decode_dict(value)
         elif major == 7:
-            return self.decode_float(value)
+            return self.decode_major7(value)
         raise Exception(f"Invalid value: {value}")
 
     def decode_int(self, value: bytes, is_negative: bool = False) -> int:
@@ -149,5 +149,12 @@ class Decoder:
         self.index += length
         return result
 
-    def decode_float(self, values: bytes) -> float:
-        return struct.unpack(">d", values[1:])[0]
+    def decode_major7(self, values: bytes) -> float | bool | None:
+        if values == b'\xf5':
+            return True
+        elif values == b'\xf4':
+            return False
+        elif values == b'\xf6':
+            return None
+        else:
+            return struct.unpack(">d", values[1:])[0]

@@ -13,6 +13,9 @@ class TestDecode(unittest.TestCase):
         self.assertEqual(
             decode("8A05251401020304050607"), [5, -6, 20, 1, 2, 3, 4, 5, 6, 7]
         )
+        self.assertTrue(decode("f5"))
+        self.assertFalse(decode("f4"))
+        self.assertIsNone(decode("f6"))
         self.assertEqual(decode("fb0000000000000000"), 0.0)
         self.assertEqual(decode("fb8000000000000000"), -0.0)
         self.assertEqual(decode("fb3ff199999999999a"), 1.1)
